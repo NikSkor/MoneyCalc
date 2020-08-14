@@ -11,18 +11,26 @@ class App extends Component {
     }
   } */
   state = {
-    transactions: [],
+    transactions: JSON.parse(localStorage.getItem('calcMoney1')) || [],
     description:'',
-    amount:''
+    amount:'',
+    resultIncome: 0,
+    resultExpenses: 0,
+    totalBalance: 0
   }
-
+  componentWillMount(){
+    this.getTotalBalance();
+  }
+  componentDidUpdate(){
+    this.addStorage();
+  }
   addTransaction = add =>  {
     const transactions = [...this.state.transactions];
 
     const transaction = {
       id:`cmr${(+new Date()).toString(16)}`,
       description:this.state.description,
-      amount:this.state.amount,
+      amount:parseFloat(this.state.amount) || 0,
       add 
     }
 
@@ -32,7 +40,8 @@ class App extends Component {
       transactions,
       description:'',
       amount:''
-    })
+    },
+    this.getTotalBalance);
   }
 
   addAmount = e => { //this указывает в этом случае на state класса
@@ -47,6 +56,39 @@ class App extends Component {
     })
   }
 
+  getIncome = () => {
+    return this.state.transactions
+      .filter(item=>item.add)
+      .reduce((acc, item)=> item.amount + acc, 0)
+  }
+
+  getExpenses = () => {
+    return this.state.transactions
+      .filter(item=>!item.add)
+      .reduce((acc, item)=> item.amount + acc, 0)
+  }
+
+  getTotalBalance = () => {
+    const resultIncome = this.getIncome();
+    const resultExpenses = this.getExpenses();
+
+    const totalBalance = resultIncome - resultExpenses;
+
+    this.setState({
+      resultIncome,
+      resultExpenses,
+      totalBalance
+    })
+  }
+
+  addStorage() {
+    localStorage.setItem('calcMoney1', JSON.stringify(this.state.transactions))
+  }
+
+  delTransaction = key => {
+    const transactions = this.state.transactions.filter(item => item.id !== key)
+    this.setState({transactions}, this.getTotalBalance)
+  }
   render(){
     return (
       <React.Fragment>
@@ -57,8 +99,15 @@ class App extends Component {
 
           <main>
               <div className="container">
-                  <Total/>
-                  <History transactions={this.state.transactions}/>
+                  <Total 
+                    resultExpenses={this.state.resultExpenses}
+                    resultIncome={this.state.resultIncome}
+                    totalBalance={this.state.totalBalance}
+                  />
+                  <History 
+                    transactions={this.state.transactions}
+                    delTransaction={this.delTransaction}
+                  />
                   <Operation 
                     addTransaction={this.addTransaction}
                     addAmount={this.addAmount}
