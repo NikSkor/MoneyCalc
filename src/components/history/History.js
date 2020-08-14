@@ -2,12 +2,12 @@ import React from 'react';
 import HistoryItem from './HistoryItem.js';
 
 
-export default function(){
+export default function({transactions}){
     return(
         <section className="history">
             <h3>История расходов</h3>
             <ul className="history__list">
-                <HistoryItem/>
+                {transactions.map(item => <HistoryItem key={item.id} transaction={item}/>)}  
             </ul>
         </section>
     )
